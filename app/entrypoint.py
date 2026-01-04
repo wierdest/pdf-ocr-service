@@ -1,6 +1,6 @@
 import sys
 import json
-from extractor import extrair_texto_com_fallback
+from extractor import extrair_texto_com_ocr_fallback
 
 
 def main() -> None:
@@ -11,7 +11,7 @@ def main() -> None:
     caminho_pdf = sys.argv[1]
     idioma = sys.argv[2] if len(sys.argv) > 2 else "por"
 
-    resultado = extrair_texto_com_fallback(
+    resultado = extrair_texto_com_ocr_fallback(
         caminho_pdf=caminho_pdf,
         idioma=idioma
     )

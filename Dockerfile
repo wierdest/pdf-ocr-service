@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zlib1g-dev \
     libffi-dev \
     pkg-config \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir --prefix=/install -r requirements.txt
@@ -34,7 +34,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     poppler-utils \
     tesseract-ocr-por \
     pngquant \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Python packages
 COPY --from=builder /install /usr/local
@@ -42,4 +42,6 @@ COPY --from=builder /install /usr/local
 # Application source
 COPY app/ .
 
-ENTRYPOINT ["python", "/app/entrypoint.py"]
+EXPOSE 8000
+
+CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
