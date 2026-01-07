@@ -52,10 +52,10 @@ uvicorn app.api:app --reload --port 8000
 
 ### `POST /v1/extract`
 - Faz upload de um PDF e retorna o texto por página e engine.
-- Query params:
-  - `idioma` (string, opcional, padrão `por`): código do idioma para o OCR (Tesseract).
 - Corpo multipart:
   - `file`: PDF (`content-type: application/pdf`).
+  - `options` (JSON como string): opções de OCR para o `ocrmypdf` (veja abaixo).
+    - Exemplo: `-F 'options={"language":"por",...}'`
 - Respostas comuns:
   - `200 OK`: corpo `ExtractionResult`.
   - `400 Bad Request`: arquivo não é PDF.
@@ -64,10 +64,24 @@ uvicorn app.api:app --reload --port 8000
   - `500 Internal Server Error`: erro inesperado.
 - Exemplo de requisição:
 ```bash
-curl -X POST "http://localhost:8000/v1/extract?idioma=por" \
+curl -X POST "http://localhost:8000/v1/extract" \
   -F "file=@/caminho/para/documento.pdf" \
+  -F 'options={"language":"por","deskew":true,"rotate_pages":true,"clean":false,"clean_final":false,"remove_background":false,"threshold":false,"optimize":3,"redo_ocr":false,"skip_text":true,"tesseract_config":null}' \
   -H "Accept: application/json"
 ```
+
+#### Opções de OCR (`OcrOptions`)
+- `language` (string, padrão `por`): idioma do Tesseract.
+- `deskew` (bool): corrige inclinação.
+- `rotate_pages` (bool): tenta rotacionar páginas.
+- `clean` (bool): limpeza básica.
+- `clean_final` (bool): limpeza final após OCR.
+- `remove_background` (bool): remove fundo.
+- `threshold` (bool): binarização.
+- `optimize` (int 0-3): nível de otimização do OCRmyPDF.
+- `redo_ocr` (bool): força OCR mesmo se já houver texto.
+- `skip_text` (bool): mantém texto existente.
+- `tesseract_config` (string|null): configurações avançadas do Tesseract.
 
 #### Schemas de resposta
 - `EngineResult`
@@ -110,6 +124,7 @@ Para processar um PDF localmente sem subir a API:
 python app/entrypoint.py caminho/arquivo.pdf [idioma]
 ```
 Imprime o resultado JSON no stdout.
+O parâmetro opcional `idioma` alimenta `options.language` internamente.
 
 ## Estrutura do projeto
 - `app/api.py`: definições de rotas FastAPI.

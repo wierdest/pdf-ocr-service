@@ -14,7 +14,7 @@ import tempfile
 from pdfminer.high_level import extract_pages
 from pdfminer.layout import LTTextContainer
 
-from schemas import EngineResult
+from schemas import EngineResult, OcrOptions
 
 def extrair_texto_com_pdftotext(caminho_pdf: str) -> dict[int, str]:
     result = subprocess.run(
@@ -85,19 +85,36 @@ def texto_e_suficiente(paginas: dict[int, str], minimo_caracteres: int = 100) ->
 def executar_ocr(
     caminho_pdf_entrada: str,
     caminho_pdf_saida: str,
-    idioma: str = "por"
+    options: OcrOptions = OcrOptions()
 ) -> None:
     """
     Executa OCR usando OCRmyPDF via subprocess.
     """
-    comando = [
-        "ocrmypdf",
-        "--skip-text",
-        "--optimize", "3",
-        "-l", idioma,
+    comando = ["ocrmypdf"]
+    if options.deskew:
+        comando.append("--deskew")
+    if options.rotate_pages:
+        comando.append("--rotate-pages")
+    if options.clean:
+        comando.append("--clean")
+    if options.clean_final:
+        comando.append("--clean-final")
+    if options.remove_background:
+        comando.append("--remove-background")
+    if options.threshold:
+        comando.append("--threshold")
+    if options.redo_ocr:
+        comando.append("--redo-ocr")
+    if options.skip_text:
+        comando.append("--skip-text")
+    comando.extend(["--optimize", str(options.optimize)])
+    if options.tesseract_config:
+        comando.extend(["--tesseract-config", options.tesseract_config])
+    comando.extend([
+        "-l", options.language,
         caminho_pdf_entrada,
         caminho_pdf_saida,
-    ]
+    ])
 
     try:
         subprocess.run(
@@ -117,7 +134,7 @@ def executar_ocr(
 
 def extrair_texto_com_ocr_fallback(
     caminho_pdf: str,
-    idioma: str = "por"
+    options: OcrOptions = OcrOptions()
 ) -> tuple[str, dict[int, list[EngineResult]]]:
     """
     Pipeline:
@@ -155,7 +172,7 @@ def extrair_texto_com_ocr_fallback(
         executar_ocr(
             caminho_pdf_entrada=caminho_pdf,
             caminho_pdf_saida=caminho_pdf_ocr,
-            idioma=idioma,
+            options=options
         )
 
         # Após OCR, roda ambos novamente

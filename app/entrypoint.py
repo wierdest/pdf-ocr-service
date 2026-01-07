@@ -1,6 +1,7 @@
 import sys
 import json
 from extractor import extrair_texto_com_ocr_fallback
+from schemas import OcrOptions
 
 
 def main() -> None:
@@ -13,7 +14,7 @@ def main() -> None:
 
     resultado = extrair_texto_com_ocr_fallback(
         caminho_pdf=caminho_pdf,
-        idioma=idioma
+        options=OcrOptions(language=idioma)
     )
 
     print(json.dumps(resultado, ensure_ascii=False, indent=2))

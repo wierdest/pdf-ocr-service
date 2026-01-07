@@ -1,7 +1,7 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException, Query
+from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.responses import JSONResponse
 from extractor import extrair_texto_com_ocr_fallback
-from schemas import ExtractionResult, PageResult
+from schemas import ExtractionResult, OcrOptions, PageResult
 import tempfile
 import os
 
@@ -20,8 +20,13 @@ def health():
 @app.post("/v1/extract", response_class=JSONResponse)
 async def extract_text_endpoint(
     file: UploadFile = File(...),
-    idioma: str = Query("por", min_length=2, max_length=5),
+    options: str | None = Form(None),
 ):
+    ocr_options = (
+        OcrOptions.model_validate_json(options)
+        if options
+        else OcrOptions()
+    )
 
     if file.content_type != "application/pdf":
         raise HTTPException(
@@ -49,7 +54,7 @@ async def extract_text_endpoint(
         try:
             origem, resultados_por_pagina = extrair_texto_com_ocr_fallback(
                 caminho_pdf=pdf_path,
-                idioma=idioma,
+                options=ocr_options
             )
         except RuntimeError as e:
             raise HTTPException(status_code=422, detail=str(e))
@@ -70,7 +75,7 @@ async def extract_text_endpoint(
         ]
 
     return ExtractionResult(
-        idioma=idioma,
+        idioma=ocr_options.language,
         origem=origem,
         paginas=paginas,
     )
