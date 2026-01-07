@@ -8,7 +8,6 @@ Dependências recomendadas para rodar este script:
     pip install pillow reportlab numpy
 """
 
-import math
 import random
 import tempfile
 from pathlib import Path
