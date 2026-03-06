@@ -20,16 +20,29 @@ Serviço de extração de texto de PDFs com fallback automático para OCR, expos
 
 ## Configuração
 ### Rodar com Docker ou Podman
-Com Docker:
-```bash
-docker build -t pdf-ocr-service .
-docker run --rm -p 8000:8000 pdf-ocr-service
-```
 
 Com Podman:
 ```bash
-podman build -t pdf-ocr-service .
-podman run --rm -p 8000:8000 pdf-ocr-service
+podman build -no-cache -t pdf-ocr-service [esse é o nome do container, pode ser qualquer coisa] .
+
+podman run -d --name pdf-ocr-service -p 8000:8000 pdf-ocr-service:latest [o  -d faz rodar sem travar o terminal, mas aí é preciso ativar os logs com o comando abaixo ]
+
+podman logs -f pdf-ocr-service
+
+Para parar:
+podman stop pdf-ocr-service
+
+Para reiniciar:
+podman start pdf-ocr-service
+
+
+```
+
+Com Docker (os mesmos comandos funcionam, aqui o exemplo do run com a flag --rm, faz com que o container seja deletado quando parar o terminal. Os logs vão aparecer no terminal que rodou, também, travando o terminal)
+
+```bash
+docker build -no-cache -t pdf-ocr-service .
+docker run --rm -p 8000:8000 pdf-ocr-service
 ```
 
 ### Se preferir rodar localmente
@@ -132,6 +145,35 @@ python app/entrypoint.py caminho/arquivo.pdf [idioma]
 ```
 Imprime o resultado JSON no stdout.
 O parâmetro opcional `idioma` alimenta `options.language` internamente.
+
+## Geradores de PDF de exemplo
+O repositório inclui scripts para gerar PDFs de teste e facilitar validações de extração nativa e OCR.
+
+Pré-requisitos:
+- Dependências do projeto já instaladas (`pip install -r requirements.txt`).
+- Para o gerador distorcido: `numpy` e `Pillow` (normalmente já vêm com os requisitos deste projeto).
+
+Comandos (na raiz do projeto):
+```bash
+python gerar_pdf_simples_teste.py
+python gerar_pdf_complexo_teste.py
+python gerar_pdf_distorcido_teste.py
+```
+
+Arquivos gerados:
+- `gerar_pdf_simples_teste.py` -> `exemplo_nota_fiscal_escaneado.pdf`
+- `gerar_pdf_complexo_teste.py` -> `exemplo_nota_fiscal_complexa_escaneado.pdf`
+- `gerar_pdf_distorcido_teste.py` -> `exemplo_nota_fiscal_distorcido.pdf`
+
+Após gerar, você pode enviar qualquer arquivo no endpoint:
+```bash
+  curl -X POST "http://localhost:8000/v1/extract" \
+  -F "file=@exemplo_nota_fiscal_distorcido.pdf" \
+  -F 'options={"language":"por","deskew":true,"rotate_pages":true,"clean":false,"clean_final":false,"remove_background":false,"threshold":false,"optimize":3,"redo_ocr":false,"skip_text":true,"tesseract_config":null}' \
+  -H "Accept: application/json"
+  
+  podman build --no-cache -t local
+```
 
 ## Estrutura do projeto
 - `app/api.py`: definições de rotas FastAPI.
