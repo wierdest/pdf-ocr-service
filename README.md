@@ -19,13 +19,20 @@ Serviço de extração de texto de PDFs com fallback automático para OCR, expos
 - Verifique se o binário `pdftotext` e `ocrmypdf` estão disponíveis no `PATH` quando executar fora do Docker.
 
 ## Configuração
-### Rodar com Docker
+### Rodar com Docker ou Podman
+Com Docker:
 ```bash
 docker build -t pdf-ocr-service .
 docker run --rm -p 8000:8000 pdf-ocr-service
 ```
 
-### Rodar localmente
+Com Podman:
+```bash
+podman build -t pdf-ocr-service .
+podman run --rm -p 8000:8000 pdf-ocr-service
+```
+
+### Se preferir rodar localmente
 1) Crie um ambiente virtual:
 ```bash
 python -m venv .venv
